@@ -4,7 +4,7 @@
   "The read timeout, in seconds, used for HTTP requests.")
 
 (defparameter *fetch-accept-header*
-  "text/markdown, text/html;q=0.9, application/xhtml+xml;q=0.9"
+  "text/markdown, text/plain;q=0.9, text/html;q=0.9, application/xhtml+xml;q=0.9"
   "The media types requested from HTTP servers.")
 
 (defun fetch-url (url)
@@ -41,6 +41,12 @@ body is always decoded to a string using its response charset."
           '("text/markdown" "text/x-markdown" "application/markdown")
           :test #'string=))
 
+(defun plain-text-content-type-p (content-type)
+  "Return true when CONTENT-TYPE identifies plain text."
+  (member (content-type-media-type content-type)
+          '("text/plain")
+          :test #'string=))
+
 (defun response-header (headers name)
   (gethash (string-downcase name) headers))
 
@@ -55,8 +61,8 @@ body is always decoded to a string using its response charset."
 (defun markdown-from-url (url)
   "Fetch URL and return its Markdown representation.
 
-Explicitly served Markdown is returned unchanged. HTML is converted;
-responses with other content types are rejected."
+Explicitly served Markdown and plain text are returned unchanged. HTML is
+converted; responses with other content types are rejected."
   (multiple-value-bind (body status headers uri)
       (fetch-url url)
     (declare (ignore uri))
@@ -65,6 +71,7 @@ responses with other content types are rejected."
     (let ((content-type (response-header headers "content-type")))
       (cond
         ((markdown-content-type-p content-type) body)
+        ((plain-text-content-type-p content-type) body)
         ((html-content-type-p content-type) (markdown-from-string body))
         (t
-         (error "Unsupported content type for ~A: ~A" url content-type))))))
+           (error "Unsupported content type for ~A: ~A" url content-type))))))
