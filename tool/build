@@ -1,64 +1,60 @@
-#!/bin/sh
-#|-*- mode:lisp -*-|#
-#|
-exec ros -Q -- $0 "$@"
-|#
+#!/usr/bin/env -S sbcl --script
 
-(defpackage :ros-script.fetch-gist-build
-  (:use :cl)
-  (:export #:main))
+;;; tool/build --- build and test fetch-gist with plain SBCL.
 
-(in-package :ros-script.fetch-gist-build)
+(require :asdf)
 
-(let ((root (merge-pathnames "../"
-                             (make-pathname :defaults *load-truename*
-                                            :name nil :type nil))))
-  (push root asdf:*central-registry*))
+(defparameter *script-root*
+  (merge-pathnames "../"
+                   (make-pathname :defaults *load-truename*
+                                  :name nil :type nil))
+  "The repository root directory.")
+
+(defun quicklisp-setup ()
+  "Return the Quicklisp setup file in the home directory, or NIL."
+  (let ((setup (merge-pathnames "quicklisp/setup.lisp"
+                                (user-homedir-pathname))))
+    (and (probe-file setup) setup)))
+
+(let ((setup (quicklisp-setup)))
+  (unless setup
+    (format *error-output*
+            "tool/build: Quicklisp not found; expected $HOME/quicklisp/setup.lisp~%")
+    (uiop:quit 1))
+  (load setup))
+
+(push *script-root* asdf:*central-registry*)
 
 (ql:quickload "fetch-gist")
 
-(defun cl-user::fetch-gist-main (&rest args)
-  (apply #'uiop:symbol-call '#:fetch-gist.cli '#:main args))
-
 (defun build ()
-  (let* ((root (merge-pathnames "../"
-                               (make-pathname :defaults *load-truename*
-                                              :name nil :type nil)))
-         (source (merge-pathnames "tool/build" root))
-         (script (merge-pathnames "fetch-gist-build.ros"
-                                 (uiop:temporary-directory)))
-         (target (merge-pathnames "bin/fetch-gist" root)))
+  (let ((target (merge-pathnames "bin/fetch-gist" *script-root*)))
     (ensure-directories-exist target)
-    (unwind-protect
-         (progn
-           (when (probe-file script)
-             (delete-file script))
-           (uiop:run-program (list "ln" "-s" (namestring source)
-                                   (namestring script)))
-           (uiop:run-program (list "ros" "--entry" "cl-user::fetch-gist-main"
-                                   "dump" "executable" (namestring script)
-                                   "-o" (namestring target))
-                             :directory root))
-      (when (probe-file script)
-        (delete-file script)))
-    (format t "Built ~A~%" (namestring target))))
+    (format t "Building ~A~%" (namestring target))
+    (sb-ext:save-lisp-and-die (namestring target)
+                              :executable t
+                              :toplevel (lambda ()
+                                          (apply #'fetch-gist.cli:main
+                                                 (uiop:command-line-arguments))))))
 
 (defun test ()
+  (ql:quickload "fetch-gist/tests")
   (asdf:test-system "fetch-gist"))
 
 (defun usage (&optional (stream *standard-output*))
   (format stream "Usage: tool/build <build|test>~%")
   (format stream "~@{~A~%~}"
           "Commands:"
-          "  build  Load and compile the fetch-gist system."
-          "  test   Load fetch-gist and run its test suite."))
+          "  build  Build the fetch-gist executable into bin/fetch-gist."
+          "  test   Run the fetch-gist test suite."))
 
-(defun main (&rest args)
+(defun main (args)
   (let ((subcommand (first args)))
     (cond
-      ((or (null subcommand)
-           (string= subcommand "help")
-           (string= subcommand "--help"))
+      ((null subcommand)
+       (usage *error-output*)
+       (uiop:quit 1))
+      ((member subcommand '("help" "--help") :test #'string=)
        (usage)
        (uiop:quit 0))
       ((string= subcommand "build")
@@ -68,7 +64,8 @@ exec ros -Q -- $0 "$@"
        (test)
        (uiop:quit 0))
       (t
-       (format *error-output* "tool/build: unknown command: ~A~%"
-               subcommand)
+       (format *error-output* "tool/build: unknown command: ~A~%" subcommand)
        (usage *error-output*)
        (uiop:quit 1)))))
+
+(main (uiop:command-line-arguments))
