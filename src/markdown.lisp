@@ -236,9 +236,9 @@
   (let ((entry (first (markdown-context-list-stack context))))
     (emit-string context (indent-string context))
     (cond
-      ((and entry (string= (car entry) "ol"))
-       (incf (cdr entry))
-       (emit-string context (format nil "~D. " (cdr entry))))
+      ((and entry (string= (first entry) "ol"))
+       (incf (rest entry))
+       (emit-string context (format nil "~D. " (rest entry))))
       (t
        (emit-string context "- "))))
   (render-children context node)
