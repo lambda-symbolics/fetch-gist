@@ -1,0 +1,24 @@
+#+TITLE: fetch-gist
+
+fetch-gist fetches a web page over HTTP and returns its body as Markdown.
+Markdown and plain text responses come back unchanged, and HTML is converted.
+
+* Development
+
+#+BEGIN_SRC sh
+./script/bootstrap
+./script/check
+./script/check --fix
+#+END_SRC
+
+=./script/check= runs the tests, then checks the source with
+[[https://github.com/lambda-symbolics/cheque][cheque]] as =cheque.sexp=
+configures it. =--fix= skips the tests and repairs what cheque can repair.
+cheque and its tools are development dependencies: =checks/qlfile= lists them,
+and the check installs them on first use into =~/.cache/cheque/tools/=.
+
+=tool/build build= builds the =bin/fetch-gist= executable.
+
+* License
+
+fetch-gist is distributed under the MIT license in =LICENSE=.
