@@ -469,7 +469,7 @@
     ((or (stringp source) (pathnamep source) (streamp source))
      (parse source))
     (t
-     (error "Cannot convert ~S to Markdown." source))))
+     (error 'markdown-source-error :source source))))
 
 (defun html->markdown (source)
   (let ((result
@@ -486,3 +486,13 @@
     (concatenate 'string
                  (string-right-trim '(#\Newline) result)
                  (string #\Newline))))
+
+(define-condition markdown-source-error (error)
+  ((source
+    :initarg       :source
+    :reader        markdown-source-error-source
+    :documentation "The object HTML->MARKDOWN was given."))
+  (:report (lambda (condition stream)
+             (format stream "Cannot convert ~S to Markdown."
+                     (markdown-source-error-source condition))))
+  (:documentation "Signalled when HTML->MARKDOWN gets a source that is not HTML text, a pathname, a stream, or Plump nodes."))

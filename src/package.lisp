@@ -30,6 +30,8 @@
                 #:tag-name
                 #:attributes)
   (:export #:html->markdown
+           #:markdown-source-error
+           #:markdown-source-error-source
            #:*inline-elements*
            #:*block-elements*))
 

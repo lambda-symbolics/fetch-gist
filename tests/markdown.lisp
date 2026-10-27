@@ -30,6 +30,9 @@
     (ok (string= (html->markdown (coerce (plump:children root) 'list))
                  expected))))
 
+(deftest markdown/rejects-an-unconvertible-source
+  (ok (signals (html->markdown 42) 'markdown-source-error)))
+
 (deftest markdown/real-world-document-converts-to-markdown
   (ok (string= (convert-fixture "11-real-world")
                (lines "# Welcome"
