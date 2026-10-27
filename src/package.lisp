@@ -36,5 +36,7 @@
            #:*block-elements*))
 
 (defpackage #:fetch-gist.cli
-  (:use #:cl #:fetch-gist #:fetch-gist.markdown)
+  (:use #:cl)
+  (:import-from #:fetch-gist
+                #:markdown-from-url)
   (:export #:main))

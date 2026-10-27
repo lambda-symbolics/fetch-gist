@@ -16,7 +16,7 @@
      (uiop:quit 1))
     (t
      (handler-case
-         (write-string (fetch-gist:markdown-from-url (first args)))
+         (write-string (markdown-from-url (first args)))
        (error (condition)
          (format *error-output* "fetch-gist: ~A~%" condition)
          (uiop:quit 1))))))
