@@ -1,5 +1,7 @@
-;;;; package.lisp --- package definition for fetch-gist. -*- Mode: Lisp; -*-
+;;;; -- Packages --
+
 (defpackage #:fetch-gist
+  (:documentation "Fetch a web page over HTTP and return its body as Markdown.")
   (:use #:cl)
   (:export #:fetch-url
            #:fetch-url-to-string
@@ -18,6 +20,7 @@
            #:fetch-content-type-error-content-type))
 
 (defpackage #:fetch-gist.markdown
+  (:documentation "Convert HTML parsed by Plump to Markdown.")
   (:use #:cl)
   (:import-from #:plump
                 #:parse
@@ -36,6 +39,7 @@
            #:*block-elements*))
 
 (defpackage #:fetch-gist.cli
+  (:documentation "The fetch-gist command line program.")
   (:use #:cl)
   (:import-from #:fetch-gist
                 #:markdown-from-url)

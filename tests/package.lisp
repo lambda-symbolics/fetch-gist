@@ -1,4 +1,5 @@
 (defpackage #:fetch-gist.tests
+  (:documentation "The fetch-gist test suite.")
   (:use #:cl)
   (:import-from #:fetch-gist
                 #:html-content-type-p
