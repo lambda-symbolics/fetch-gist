@@ -22,6 +22,9 @@ body is always decoded to a string using its response charset."
   (nth-value 0 (fetch-url url)))
 
 (defun content-type-media-type (content-type)
+  "Return the lowercase media type of the Content-Type header CONTENT-TYPE, without parameters.
+
+Return NIL when CONTENT-TYPE is NIL."
   (when content-type
     (string-downcase
      (string-trim '(#\Space #\Tab)
@@ -48,6 +51,7 @@ body is always decoded to a string using its response charset."
           :test #'string=))
 
 (defun response-header (headers name)
+  "Return the value of the header NAME in the Dexador response HEADERS."
   (gethash (string-downcase name) headers))
 
 (defun markdown-from-string (html)
@@ -109,4 +113,4 @@ converted; responses with other content types are rejected."
              (format stream "Unsupported content type for ~A: ~A"
                      (fetch-error-url condition)
                      (fetch-content-type-error-content-type condition))))
-  (:documentation "Signalled when the response is neither Markdown, plain text, nor HTML."))
+  (:documentation "Signalled when the response content type is other than Markdown, plain text, or HTML."))
