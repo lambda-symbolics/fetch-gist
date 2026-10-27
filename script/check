@@ -1,0 +1,32 @@
+#!/bin/sh
+
+set -eu
+
+root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+cd -- "$root"
+
+if [ ! -r "$root/.qlot/setup.lisp" ]; then
+  printf '%s\n' 'fetch-gist dependencies are missing; run ./script/bootstrap.' >&2
+  exit 1
+fi
+
+tests=0
+case " $* " in
+  *" --fix "*) ;;
+  *)
+    sbcl --noinform --non-interactive \
+      --load "$root/.qlot/setup.lisp" \
+      --eval '(require :asdf)' \
+      --eval '(asdf:load-asd (truename "fetch-gist.asd"))' \
+      --eval '(asdf:load-system "fetch-gist/tests")' \
+      --eval '(uiop:quit (if (uiop:symbol-call (quote #:rove) (quote #:run) "fetch-gist/tests") 0 1))' || tests=$?
+    ;;
+esac
+
+source=0
+sbcl --script "$root/script/check-source.lisp" "$@" || source=$?
+
+if [ "$tests" -ne 0 ]; then
+  exit "$tests"
+fi
+exit "$source"
