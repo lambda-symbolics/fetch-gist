@@ -389,11 +389,11 @@
       (let ((tag (node-tag child)))
         (cond
           ((string= tag "th")
-           (collect-table-cell context child state t))
+           (collect-table-cell context child :state state :header-p t))
           ((string= tag "td")
-           (collect-table-cell context child state nil)))))))
+           (collect-table-cell context child :state state)))))))
 
-(defun collect-table-cell (context node state headerp)
+(defun collect-table-cell (context node &key state header-p)
   (let ((value (table-cell-text
                 (with-captured-output (context)
                   (render-children context node))))
@@ -401,7 +401,7 @@
     (cond
       ((null table)
        (emit-string context value))
-      (headerp
+      (header-p
        (push value (markdown-table-header table)))
       (t
        (push value (markdown-table-state-table-row state))))))
@@ -454,9 +454,9 @@
 
 (define-element "tr" (context node) (collect-table-row context node nil))
 
-(define-element "th" (context node) (collect-table-cell context node nil t))
+(define-element "th" (context node) (collect-table-cell context node :header-p t))
 
-(define-element "td" (context node) (collect-table-cell context node nil nil))
+(define-element "td" (context node) (collect-table-cell context node))
 
 (defun markdown-source-nodes (source)
   (cond
