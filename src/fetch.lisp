@@ -13,7 +13,7 @@
 The values are the response body, status code, headers, and final URI. The
 body is always decoded to a string using its response charset."
   (dex:get url
-           :headers `(("Accept" . ,*fetch-accept-header*))
+           :headers      `(("Accept" . ,*fetch-accept-header*))
            :read-timeout *fetch-timeout*
            :force-string t))
 
@@ -70,8 +70,11 @@ converted; responses with other content types are rejected."
       (error "Fetching ~A returned HTTP status ~D" url status))
     (let ((content-type (response-header headers "content-type")))
       (cond
-        ((markdown-content-type-p content-type) body)
-        ((plain-text-content-type-p content-type) body)
-        ((html-content-type-p content-type) (markdown-from-string body))
+        ((markdown-content-type-p content-type)
+         body)
+        ((plain-text-content-type-p content-type)
+         body)
+        ((html-content-type-p content-type)
+         (markdown-from-string body))
         (t
            (error "Unsupported content type for ~A: ~A" url content-type))))))

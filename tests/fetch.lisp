@@ -17,7 +17,7 @@
 
 (deftest markdown-from-url/converts-fetched-html
   (let ((original-fetch-url (symbol-function 'fetch-gist:fetch-url))
-        (headers (make-hash-table :test #'equal)))
+        (headers            (make-hash-table :test #'equal)))
     (setf (gethash "content-type" headers) "text/html; charset=utf-8")
     (unwind-protect
          (progn
@@ -32,7 +32,7 @@
 
 (deftest markdown-from-url/returns-plain-text-unchanged
   (let ((original-fetch-url (symbol-function 'fetch-gist:fetch-url))
-        (headers (make-hash-table :test #'equal)))
+        (headers            (make-hash-table :test #'equal)))
     (setf (gethash "content-type" headers) "text/plain; charset=utf-8")
     (unwind-protect
          (progn

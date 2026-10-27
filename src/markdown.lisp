@@ -76,11 +76,11 @@
                :initial-element #\Space))
 
 (defmacro with-captured-output ((context) &body body)
-  (let ((stream (gensym "STREAM"))
-        (captured (gensym "CAPTURED"))
+  (let ((stream         (gensym "STREAM"))
+        (captured       (gensym "CAPTURED"))
         (last-character (gensym "LAST-CHARACTER"))
-        (newline-count (gensym "NEWLINE-COUNT"))
-        (pending-space (gensym "PENDING-SPACE")))
+        (newline-count  (gensym "NEWLINE-COUNT"))
+        (pending-space  (gensym "PENDING-SPACE")))
     `(let ((,stream (markdown-context-stream ,context))
            (,last-character (markdown-context-last-character ,context))
            (,newline-count (markdown-context-newline-count ,context))
@@ -119,10 +119,14 @@
 
 (defun render-node (context node)
   (cond
-    ((text-node-p node) (emit-text context (text node)))
-    ((element-p node) (render-element context node))
-    ((nesting-node-p node) (render-children context node))
-    (t nil)))
+    ((text-node-p node)
+     (emit-text context (text node)))
+    ((element-p node)
+     (render-element context node))
+    ((nesting-node-p node)
+     (render-children context node))
+    (t
+     nil)))
 
 (defun render-children (context node)
   (dolist (child (node-children node))
@@ -299,7 +303,6 @@
   (table-stack nil :type list)
   (table-row   nil :type list))
 
-
 (defun table-cell-text (string)
   (with-output-to-string (out)
     (let ((pending nil))
@@ -336,8 +339,8 @@
 (defun markdown-table-format (table)
   (let* ((header (mapcar #'escape-table-cell
                          (reverse (markdown-table-header table))))
-         (rows (mapcar (lambda (row) (mapcar #'escape-table-cell row))
-                       (reverse (markdown-table-rows table))))
+         (rows   (mapcar (lambda (row) (mapcar #'escape-table-cell row))
+                         (reverse (markdown-table-rows table))))
          (widths (table-column-widths (cons header rows))))
     (if (null widths)
         ""
@@ -374,7 +377,7 @@
 
 (defun collect-table-row (context node state)
   (collect-table-cells context (node-children node) state)
-  (let ((row (nreverse (markdown-table-state-table-row state)))
+  (let ((row   (nreverse (markdown-table-state-table-row state)))
         (table (first (markdown-table-state-table-stack state))))
     (setf (markdown-table-state-table-row state) nil)
     (when (and table row)
@@ -385,8 +388,10 @@
     (when (element-p child)
       (let ((tag (node-tag child)))
         (cond
-          ((string= tag "th") (collect-table-cell context child state t))
-          ((string= tag "td") (collect-table-cell context child state nil)))))))
+          ((string= tag "th")
+           (collect-table-cell context child state t))
+          ((string= tag "td")
+           (collect-table-cell context child state nil)))))))
 
 (defun collect-table-cell (context node state headerp)
   (let ((value (table-cell-text
@@ -394,21 +399,27 @@
                   (render-children context node))))
         (table (and state (first (markdown-table-state-table-stack state)))))
     (cond
-      ((null table) (emit-string context value))
-      (headerp (push value (markdown-table-header table)))
-      (t (push value (markdown-table-state-table-row state))))))
+      ((null table)
+       (emit-string context value))
+      (headerp
+       (push value (markdown-table-header table)))
+      (t
+       (push value (markdown-table-state-table-row state))))))
 
 (dolist (tag *skipped-elements*)
   (setf (gethash tag *element-handlers*) #'render-skipped))
 
 (define-element "p" (context node) (render-block context node))
+
 (define-element "div" (context node) (render-block context node))
 
 (dolist (level '(1 2 3 4 5 6))
   (setf (gethash (format nil "h~D" level) *element-handlers*) #'render-heading))
 
 (define-element "ul" (context node) (render-list context node))
+
 (define-element "ol" (context node) (render-list context node))
+
 (define-element "li" (context node) (render-list-item context node))
 
 (define-element "blockquote" (context node) (render-blockquote context node))
@@ -416,39 +427,56 @@
 (define-element "pre" (context node) (render-pre context node))
 
 (define-element "strong" (context node) (render-inline context node "**"))
+
 (define-element "b" (context node) (render-inline context node "**"))
+
 (define-element "em" (context node) (render-inline context node "*"))
+
 (define-element "i" (context node) (render-inline context node "*"))
+
 (define-element "del" (context node) (render-inline context node "~~"))
+
 (define-element "s" (context node) (render-inline context node "~~"))
+
 (define-element "code" (context node) (render-code context node))
+
 (define-element "kbd" (context node) (render-code context node))
 
 (define-element "a" (context node) (render-link context node))
+
 (define-element "img" (context node) (render-image context node))
 
 (define-element "br" (context node) (render-break context node))
+
 (define-element "hr" (context node) (render-rule context node))
 
 (define-element "table" (context node) (render-table context node))
+
 (define-element "tr" (context node) (collect-table-row context node nil))
+
 (define-element "th" (context node) (collect-table-cell context node nil t))
+
 (define-element "td" (context node) (collect-table-cell context node nil nil))
 
 (defun markdown-source-nodes (source)
   (cond
-    ((null source) nil)
-    ((listp source) source)
-    ((node-p source) source)
-    ((or (stringp source) (pathnamep source) (streamp source)) (parse source))
-    (t (error "Cannot convert ~S to Markdown." source))))
+    ((null source)
+     nil)
+    ((listp source)
+     source)
+    ((node-p source)
+     source)
+    ((or (stringp source) (pathnamep source) (streamp source))
+     (parse source))
+    (t
+     (error "Cannot convert ~S to Markdown." source))))
 
 (defun html->markdown (source)
   (let ((result
           (with-output-to-string (stream)
-            (let ((context (make-markdown-context :stream stream
-                                                  :newline-count 0
-                                                  :pre-depth 0
+            (let ((context (make-markdown-context :stream           stream
+                                                  :newline-count    0
+                                                  :pre-depth        0
                                                   :blockquote-depth 0)))
               (render-nodes context (markdown-source-nodes source))
               (when (and (markdown-context-last-character context)

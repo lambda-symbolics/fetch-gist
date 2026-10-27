@@ -3,24 +3,24 @@
 (deftest markdown/documentation-page-converts-to-markdown
   (ok (string= (html->markdown
                 (read-fixture "pages/example-documentation.html"))
-                (read-fixture "pages/example-documentation.md"))))
+               (read-fixture "pages/example-documentation.md"))))
 
 (deftest markdown-from-string/converts-html
   (ok (string= (markdown-from-string "<p>Hello <strong>world</strong>.</p>")
-                (concatenate 'string "Hello **world**." (string #\Newline)))))
+               (concatenate 'string "Hello **world**." (string #\Newline)))))
 
 (deftest markdown-from-file/converts-html
   (ok (string= (markdown-from-file
                 (merge-pathnames "pages/example-documentation.html"
                                  *fixture-directory*))
-                (read-fixture "pages/example-documentation.md"))))
+               (read-fixture "pages/example-documentation.md"))))
 
 (deftest markdown/accepts-strings-streams-pathnames-and-nodes
-  (let* ((html (read-fixture "pages/example-documentation.html"))
+  (let* ((html     (read-fixture "pages/example-documentation.html"))
          (expected (read-fixture "pages/example-documentation.md"))
          (pathname (merge-pathnames "pages/example-documentation.html"
                                     *fixture-directory*))
-         (root (plump:parse html)))
+         (root     (plump:parse html)))
     (ok (string= (html->markdown html) expected))
     (ok (string= (with-input-from-string (stream html)
                    (html->markdown stream))
