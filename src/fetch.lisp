@@ -67,7 +67,7 @@ converted; responses with other content types are rejected."
       (fetch-url url)
     (declare (ignore uri))
     (unless (<= 200 status 299)
-      (error "Fetching ~A returned HTTP status ~D" url status))
+      (error 'fetch-status-error :url url :status status))
     (let ((content-type (response-header headers "content-type")))
       (cond
         ((markdown-content-type-p content-type)
@@ -77,4 +77,36 @@ converted; responses with other content types are rejected."
         ((html-content-type-p content-type)
          (markdown-from-string body))
         (t
-           (error "Unsupported content type for ~A: ~A" url content-type))))))
+         (error 'fetch-content-type-error :url          url
+                                          :content-type content-type))))))
+
+(define-condition fetch-error (error)
+  ((url
+    :initarg       :url
+    :reader        fetch-error-url
+    :documentation "The URL that was fetched."))
+  (:documentation "The parent of the conditions MARKDOWN-FROM-URL signals for a response it cannot use."))
+
+(define-condition fetch-status-error (fetch-error)
+  ((status
+    :initarg       :status
+    :reader        fetch-status-error-status
+    :type          integer
+    :documentation "The HTTP status code of the response."))
+  (:report (lambda (condition stream)
+             (format stream "Fetching ~A returned HTTP status ~D"
+                     (fetch-error-url condition)
+                     (fetch-status-error-status condition))))
+  (:documentation "Signalled when the response status is outside 200 to 299."))
+
+(define-condition fetch-content-type-error (fetch-error)
+  ((content-type
+    :initarg       :content-type
+    :reader        fetch-content-type-error-content-type
+    :type          (or null string)
+    :documentation "The Content-Type header of the response, or NIL when it has none."))
+  (:report (lambda (condition stream)
+             (format stream "Unsupported content type for ~A: ~A"
+                     (fetch-error-url condition)
+                     (fetch-content-type-error-content-type condition))))
+  (:documentation "Signalled when the response is neither Markdown, plain text, nor HTML."))

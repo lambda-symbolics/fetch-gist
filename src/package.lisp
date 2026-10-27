@@ -9,7 +9,13 @@
            #:markdown-from-string
            #:markdown-from-file
            #:markdown-from-url
-           #:*fetch-timeout*))
+           #:*fetch-timeout*
+           #:fetch-error
+           #:fetch-error-url
+           #:fetch-status-error
+           #:fetch-status-error-status
+           #:fetch-content-type-error
+           #:fetch-content-type-error-content-type))
 
 (defpackage #:fetch-gist.markdown
   (:use #:cl)
